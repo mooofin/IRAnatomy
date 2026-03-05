@@ -1,4 +1,3 @@
-/// Escape HTML special chars for text content (not attributes).
 pub fn escape_html(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
@@ -12,9 +11,7 @@ pub fn escape_html(s: &str) -> String {
     out
 }
 
-// ─── LLVM IR ─────────────────────────────────────────────────────────────────
 
-/// Produce syntax-highlighted HTML for LLVM IR text.
 pub fn highlight_ir(text: &str) -> String {
     if text.is_empty() {
         return String::new();
@@ -221,59 +218,43 @@ fn is_ir_type(s: &str) -> bool {
 fn is_ir_keyword(s: &str) -> bool {
     matches!(
         s,
-        // Terminators
         "ret" | "br" | "switch" | "indirectbr" | "invoke" | "resume" | "unreachable"
         | "callbr" | "catchswitch" | "catchret" | "cleanupret"
-        // Binary ops
         | "add" | "fadd" | "sub" | "fsub" | "mul" | "fmul"
         | "udiv" | "sdiv" | "fdiv" | "urem" | "srem" | "frem"
-        // Bitwise
         | "shl" | "lshr" | "ashr" | "and" | "or" | "xor"
-        // Memory
         | "alloca" | "load" | "store" | "fence" | "cmpxchg" | "atomicrmw"
         | "getelementptr" | "inbounds"
-        // Conversions
         | "trunc" | "zext" | "sext" | "fptrunc" | "fpext"
         | "fptoui" | "fptosi" | "uitofp" | "sitofp"
         | "ptrtoint" | "inttoptr" | "bitcast" | "addrspacecast"
-        // Other ops
         | "icmp" | "fcmp" | "phi" | "select" | "call" | "tail" | "musttail" | "notail"
         | "va_arg" | "landingpad" | "catchpad" | "cleanuppad"
         | "extractelement" | "insertelement" | "shufflevector"
         | "extractvalue" | "insertvalue" | "freeze"
-        // Module-level
         | "define" | "declare" | "global" | "constant" | "type"
         | "target" | "datalayout" | "triple" | "source_filename" | "module" | "attributes"
-        // Flags / qualifiers
         | "nsw" | "nuw" | "exact" | "nnan" | "ninf" | "nsz" | "arcp" | "contract" | "afn"
         | "reassoc" | "fast" | "volatile" | "atomic" | "syncscope"
         | "acquire" | "release" | "acq_rel" | "seq_cst" | "monotonic" | "unordered"
         | "align" | "to" | "from"
-        // Linkage / visibility
         | "private" | "internal" | "available_externally" | "linkonce" | "weak"
         | "common" | "appending" | "extern_weak" | "linkonce_odr" | "weak_odr" | "external"
         | "default" | "hidden" | "protected"
         | "dso_local" | "local_unnamed_addr" | "unnamed_addr"
-        // Function attrs
         | "noinline" | "alwaysinline" | "optnone" | "inlinehint"
         | "noreturn" | "nounwind" | "readnone" | "readonly" | "writeonly"
         | "noalias" | "nocapture" | "nonnull" | "noundef" | "returned"
         | "signext" | "zeroext"
-        // Values
         | "null" | "undef" | "poison" | "zeroinitializer" | "none"
         | "true" | "false"
-        // icmp predicates
         | "eq" | "ne" | "ugt" | "uge" | "ult" | "ule" | "sgt" | "sge" | "slt" | "sle"
-        // fcmp predicates
         | "oeq" | "ogt" | "oge" | "olt" | "ole" | "one" | "ord" | "ueq" | "une" | "uno"
-        // misc
         | "x"
     )
 }
 
-// ─── Assembly ─────────────────────────────────────────────────────────────────
 
-/// Produce syntax-highlighted HTML for x86 AT&T assembly text.
 pub fn highlight_asm(text: &str) -> String {
     if text.is_empty() {
         return String::new();
@@ -294,7 +275,6 @@ fn highlight_asm_line(line: &str) -> String {
     let indent = &line[..line.len() - trimmed.len()];
     let esc_indent = escape_html(indent);
 
-    // Comment
     if trimmed.starts_with('#') || trimmed.starts_with("//") {
         return format!(
             "{}<span class='hl-comment'>{}</span>",
@@ -302,7 +282,6 @@ fn highlight_asm_line(line: &str) -> String {
             escape_html(trimmed)
         );
     }
-    // Label (ends with ':', no spaces)
     if trimmed.ends_with(':') && !trimmed.contains(' ') {
         return format!(
             "{}<span class='hl-label'>{}</span>",
@@ -310,7 +289,6 @@ fn highlight_asm_line(line: &str) -> String {
             escape_html(trimmed)
         );
     }
-    // Directive
     if trimmed.starts_with('.') {
         let sp = trimmed
             .find(|c: char| c.is_whitespace())
@@ -324,7 +302,6 @@ fn highlight_asm_line(line: &str) -> String {
             highlight_asm_operands(rest)
         );
     }
-    // Instruction
     let sp = trimmed
         .find(|c: char| c.is_whitespace())
         .unwrap_or(trimmed.len());
@@ -395,17 +372,13 @@ fn highlight_asm_operands(s: &str) -> String {
     out
 }
 
-// ─── Diff ─────────────────────────────────────────────────────────────────────
 
-/// Compute a side-by-side diff of two IR texts.
-/// Returns (old_pane_html, new_pane_html) with syntax + diff highlighting.
 pub fn diff_ir(old: &str, new: &str) -> (String, String) {
     let old_lines: Vec<&str> = old.lines().collect();
     let new_lines: Vec<&str> = new.lines().collect();
     let m = old_lines.len();
     let n = new_lines.len();
 
-    // Skip LCS for very large files — just return highlighted text
     if m > 500 || n > 500 {
         let oh = old_lines
             .iter()
@@ -426,7 +399,6 @@ pub fn diff_ir(old: &str, new: &str) -> (String, String) {
         return (oh, nh);
     }
 
-    // LCS DP
     let mut dp = vec![vec![0u16; n + 1]; m + 1];
     for i in (0..m).rev() {
         for j in (0..n).rev() {

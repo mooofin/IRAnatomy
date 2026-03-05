@@ -56,7 +56,6 @@ pub fn OutputTabs(
 ) -> impl IntoView {
     let tabs = vec!["LLVM IR", "Optimized IR", "IR Diff", "CFG", "Assembly"];
 
-    // Memos so highlighting only recomputes when the source signal changes
     let hl_ir  = create_memo(move |_| crate::highlight::highlight_ir(&llvm_ir.get()));
     let hl_opt = create_memo(move |_| crate::highlight::highlight_ir(&optimized_ir.get()));
     let hl_asm = create_memo(move |_| crate::highlight::highlight_asm(&assembly_content.get()));
@@ -64,7 +63,6 @@ pub fn OutputTabs(
         crate::highlight::diff_ir(&llvm_ir.get(), &optimized_ir.get())
     });
 
-    // Auto-switch active tab when error arrives
     create_effect(move |_| {
         if error.get().is_some() {
             active_tab.set("LLVM IR".to_string());
@@ -73,7 +71,6 @@ pub fn OutputTabs(
 
     view! {
         <div class="output-panel">
-            // ── Error banner ───────────────────────────────────────────────
             <Show when=move || error.get().is_some() fallback=|| ()>
                 <div class="error-banner">
                     <span class="error-tag">"! ERROR"</span>
@@ -81,7 +78,6 @@ pub fn OutputTabs(
                 </div>
             </Show>
 
-            // ── Tabs ───────────────────────────────────────────────────────
             <div class="tab-header">
                 {tabs.into_iter().map(|tab| {
                     let tab_name = tab.to_string();
@@ -96,19 +92,15 @@ pub fn OutputTabs(
                 }).collect_view()}
             </div>
 
-            // ── Content ────────────────────────────────────────────────────
             <div class="tab-content">
-                // LLVM IR
                 <Show when=move || active_tab.get() == "LLVM IR" fallback=|| ()>
                     <pre class="code-output" inner_html=move || hl_ir.get()></pre>
                 </Show>
 
-                // Optimized IR
                 <Show when=move || active_tab.get() == "Optimized IR" fallback=|| ()>
                     <pre class="code-output" inner_html=move || hl_opt.get()></pre>
                 </Show>
 
-                // IR Diff
                 <Show when=move || active_tab.get() == "IR Diff" fallback=|| ()>
                     <div class="ir-diff-view">
                         <div class="ir-diff-pane">
@@ -124,12 +116,10 @@ pub fn OutputTabs(
                     </div>
                 </Show>
 
-                // Assembly
                 <Show when=move || active_tab.get() == "Assembly" fallback=|| ()>
                     <pre class="code-output" inner_html=move || hl_asm.get()></pre>
                 </Show>
 
-                // CFG
                 <Show when=move || active_tab.get() == "CFG" fallback=|| ()>
                     <div class="cfg-view">
                         <For
@@ -158,7 +148,6 @@ pub fn Timeline(
 
     view! {
         <div class="timeline-visualizer">
-            // ── Header row ─────────────────────────────────────────────────
             <div class="timeline-header">
                 <h3>"OPTIMIZATION PIPELINE"</h3>
                 <span class="pass-counter">
@@ -171,7 +160,6 @@ pub fn Timeline(
                 </span>
             </div>
 
-            // ── Slider ─────────────────────────────────────────────────────
             <div class="timeline-slider">
                 <input
                     type="range"
@@ -189,7 +177,6 @@ pub fn Timeline(
                 />
             </div>
 
-            // ── Filter input ───────────────────────────────────────────────
             <input
                 class="pass-filter"
                 type="text"
@@ -198,7 +185,6 @@ pub fn Timeline(
                 prop:value=filter
             />
 
-            // ── Pass list ──────────────────────────────────────────────────
             <div class="passes-list">
                 <For
                     each=move || {

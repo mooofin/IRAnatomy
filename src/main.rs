@@ -13,10 +13,8 @@ async fn main() {
     let addr = leptos_options.site_addr;
     let routes = generate_route_list(App);
 
-    // Explicitly register server functions
     server_fn::axum::register_explicit::<CompileAndOptimize>();
 
-    // Resolve site_root to absolute path
     let site_root = std::env::current_dir()
         .unwrap()
         .join(&leptos_options.site_root);
@@ -24,7 +22,6 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/*fn_name", axum::routing::get(leptos_axum::handle_server_fns).post(leptos_axum::handle_server_fns))
-        // Serve pkg (JS/WASM/CSS) BEFORE leptos_routes so the /*any wildcard doesn't intercept them
         .nest_service("/pkg", ServeDir::new(site_root.join("pkg")))
         .leptos_routes(&leptos_options, routes, App)
         .fallback_service(ServeDir::new(&site_root))
@@ -37,5 +34,4 @@ async fn main() {
 
 #[cfg(not(feature = "ssr"))]
 pub fn main() {
-    // no client-side main function
 }

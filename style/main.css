@@ -20,7 +20,6 @@
     --glow-green:   0 0 5px rgba(68, 232, 96, 0.35);
 }
 
-/* ── Scanline overlay ── */
 body::after {
     content: '';
     position: fixed;
@@ -49,7 +48,6 @@ body {
     overflow: hidden;
 }
 
-/* ── Header ── */
 header {
     padding: 0.35rem 1.25rem;
     background: var(--fg);
@@ -84,7 +82,6 @@ h1::after {
     50%       { opacity: 0; }
 }
 
-/* ── Layout ── */
 .app-container {
     display: flex;
     flex-direction: column;
@@ -111,7 +108,6 @@ h1::after {
     min-width: 220px;
 }
 
-/* ── Code editor panel ── */
 .code-editor-panel {
     display: flex;
     flex-direction: column;
@@ -141,7 +137,6 @@ h1::after {
     flex: 1;
 }
 
-/* ── Select ── */
 select {
     background: var(--bg);
     color: var(--fg);
@@ -162,7 +157,6 @@ select:hover {
     box-shadow: var(--glow);
 }
 
-/* ── Button ── */
 button {
     background: var(--bg);
     color: var(--accent);
@@ -192,7 +186,6 @@ button:active {
     border-color: var(--fg-bright);
 }
 
-/* ── Textarea ── */
 .code-input {
     flex: 1;
     background: transparent;
@@ -216,7 +209,6 @@ button:active {
     color: var(--bg);
 }
 
-/* ── Timeline ── */
 .timeline-visualizer {
     background: var(--bg-panel);
     border: 1px solid var(--border-hi);
@@ -282,7 +274,6 @@ button:active {
     text-shadow: var(--glow);
 }
 
-/* ── Output panel ── */
 .output-panel {
     background: var(--bg-panel);
     border: 1px solid var(--border-hi);
@@ -292,7 +283,6 @@ button:active {
     overflow: hidden;
 }
 
-/* ── Tabs ── */
 .tab-header {
     display: flex;
     background: var(--fg-dim);
@@ -330,7 +320,6 @@ button:active {
     text-shadow: var(--glow);
 }
 
-/* ── Tab content ── */
 .tab-content {
     flex: 1;
     padding: 0.75rem;
@@ -342,7 +331,6 @@ button:active {
 .tab-content::-webkit-scrollbar { width: 5px; }
 .tab-content::-webkit-scrollbar-thumb { background: var(--fg-muted); }
 
-/* ── Code output ── */
 .code-output {
     margin: 0;
     font-family: var(--font-code);
@@ -352,7 +340,6 @@ button:active {
     text-shadow: var(--glow-green);
 }
 
-/* ── IR diff panes ── */
 .ir-diff-pane {
     border: 1px solid var(--border-hi) !important;
     border-radius: 0 !important;
@@ -366,7 +353,6 @@ button:active {
     text-transform: uppercase;
 }
 
-/* ── CFG ── */
 .cfg-function {
     border: 1px solid var(--border-hi) !important;
     border-radius: 0 !important;
@@ -389,7 +375,6 @@ button:active {
     text-shadow: 0 0 5px rgba(255, 140, 66, 0.3);
 }
 
-/* ── Resize handle ── */
 .resize-handle {
     flex: 0 0 4px;
     background: var(--border-hi);
@@ -411,7 +396,6 @@ button:active {
     box-shadow: 0 0 6px rgba(232, 160, 0, 0.5);
 }
 
-/* ── CFG SVG — constrain size ── */
 .cfg-svg svg {
     max-width: 100%;
     height: auto !important;
@@ -423,7 +407,6 @@ button:active {
     max-height: 500px;
 }
 
-/* ── Syntax highlighting ── */
 .hl-keyword  { color: #FFD060; }
 .hl-type     { color: #60D8FF; }
 .hl-value    { color: #44E860; }
@@ -435,11 +418,9 @@ button:active {
 .hl-attr     { color: #888888; }
 .hl-meta     { color: #404040; }
 
-/* ── Diff highlighting ── */
 .diff-add    { color: #6EFF90; border-left: 2px solid #44E860; padding-left: 4px; }
 .diff-remove { color: #FF8080; border-left: 2px solid #FF4444; padding-left: 4px; opacity: 0.8; }
 
-/* ── IR Diff layout ── */
 .ir-diff-view {
     display: flex;
     gap: 0.5rem;
@@ -467,7 +448,6 @@ button:active {
     flex-shrink: 0;
 }
 
-/* ── Error banner ── */
 .error-banner {
     background: rgba(200, 30, 30, 0.12);
     border-bottom: 1px solid #8B2020;
@@ -493,7 +473,6 @@ button:active {
     overflow-y: auto;
 }
 
-/* ── Pass filter ── */
 .timeline-header {
     display: flex;
     align-items: baseline;
@@ -522,7 +501,6 @@ button:active {
 .pass-filter::placeholder { color: var(--fg-dim); }
 .pass-filter:focus { border-color: var(--fg); box-shadow: var(--glow); }
 
-/* ── Compile button disabled state ── */
 button:disabled {
     color: var(--fg-muted);
     border-color: var(--border);
@@ -531,7 +509,6 @@ button:disabled {
 }
 button:disabled:hover { background: transparent; box-shadow: none; }
 
-/* ── CFG ── */
 .cfg-view { display: flex; flex-direction: column; gap: 1rem; }
 .cfg-fn-title {
     margin: 0 0 0.5rem 0;

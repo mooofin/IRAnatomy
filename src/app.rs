@@ -4,18 +4,13 @@ use leptos_router::*;
 
 #[component]
 pub fn App() -> impl IntoView {
-    // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
 
     view! {
-        // injects a stylesheet into the document <head>
-        // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/llvm-ir-explorer.css"/>
 
-        // sets the document title
         <Title text="LLVM IR Explorer"/>
 
-        // content for this welcome page
         <Router>
             <main>
                 <Routes>
@@ -29,7 +24,6 @@ pub fn App() -> impl IntoView {
 
 use crate::components::*;
 
-/// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
     let code = create_rw_signal(String::from("int foo(int x) {\n    return x + 0;\n}"));
@@ -48,7 +42,6 @@ fn HomePage() -> impl IntoView {
 
     let compile_action = create_server_action::<crate::server_functions::CompileAndOptimize>();
 
-    // React to compilation results
     create_effect(move |_| {
         match compile_action.value().get() {
             Some(Ok(res)) => {
@@ -71,7 +64,6 @@ fn HomePage() -> impl IntoView {
         }
     });
 
-    // Update optimized IR view when slider moves
     create_effect(move |_| {
         let p = passes.get();
         let idx = current_pass_index.get();
@@ -132,19 +124,10 @@ fn HomePage() -> impl IntoView {
     }
 }
 
-/// 404 - Not Found
 #[component]
 fn NotFound() -> impl IntoView {
-    // set an HTTP status code 404
-    // this is feature gated because it can only be done during
-    // initial server-side rendering
-    // if you navigate to the 404 page subsequently, the status
-    // code will not be set because there is not a new HTTP request
-    // to the server
     #[cfg(feature = "ssr")]
     {
-        // this can be done inline because it's synchronous
-        // if it were async, we'd use a server function
         let resp = expect_context::<leptos_axum::ResponseOptions>();
         resp.set_status(axum::http::StatusCode::NOT_FOUND);
     }
