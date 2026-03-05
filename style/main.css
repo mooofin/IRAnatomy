@@ -1,0 +1,543 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+
+:root {
+    --bg:           #080806;
+    --bg-panel:     #0E0E0B;
+    --bg-active:    #1C1500;
+    --fg:           #E8A000;
+    --fg-bright:    #FFD060;
+    --fg-dim:       #3D2900;
+    --fg-muted:     #7A5200;
+    --border:       #2A1C00;
+    --border-hi:    #B07800;
+    --accent:       #FF6600;
+    --code-green:   #44E860;
+    --code-asm:     #FF8C42;
+    --font-ui:      'VT323', monospace;
+    --font-code:    'Share Tech Mono', 'Courier New', monospace;
+    --glow:         0 0 6px rgba(232, 160, 0, 0.45);
+    --glow-bright:  0 0 10px rgba(232, 160, 0, 0.7);
+    --glow-green:   0 0 5px rgba(68, 232, 96, 0.35);
+}
+
+/* ── Scanline overlay ── */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 3px,
+        rgba(0, 0, 0, 0.1) 3px,
+        rgba(0, 0, 0, 0.1) 4px
+    );
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 18px;
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at 50% 40%, #131108 0%, #060604 100%);
+    color: var(--fg);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* ── Header ── */
+header {
+    padding: 0.35rem 1.25rem;
+    background: var(--fg);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    border-bottom: 3px double var(--fg-bright);
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+h1 {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 1.5rem;
+    font-weight: normal;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--bg);
+    -webkit-text-fill-color: unset;
+    background: none;
+}
+
+h1::after {
+    content: '█';
+    animation: blink 1.1s step-end infinite;
+    margin-left: 3px;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+
+/* ── Layout ── */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.content-split {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.left-panel,
+.right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0.6rem;
+    gap: 0.6rem;
+    overflow: hidden;
+}
+
+.left-panel {
+    min-width: 220px;
+}
+
+/* ── Code editor panel ── */
+.code-editor-panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-hi);
+    flex: 1;
+    overflow: hidden;
+}
+
+.code-editor-panel .header {
+    padding: 0.25rem 0.75rem;
+    background: var(--fg-dim);
+    border-bottom: 1px solid var(--border-hi);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.code-editor-panel h2 {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 1.1rem;
+    font-weight: normal;
+    color: var(--fg);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    flex: 1;
+}
+
+/* ── Select ── */
+select {
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border-hi);
+    padding: 0.15rem 0.4rem;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    outline: none;
+    cursor: pointer;
+    border-radius: 0;
+    text-transform: uppercase;
+}
+
+select:focus,
+select:hover {
+    border-color: var(--fg-bright);
+    box-shadow: var(--glow);
+}
+
+/* ── Button ── */
+button {
+    background: var(--bg);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.15rem 0.9rem;
+    font-family: var(--font-ui);
+    font-size: 1.05rem;
+    font-weight: normal;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    border-radius: 0;
+    text-transform: uppercase;
+    outline: none;
+    transition: background 0.08s, color 0.08s, box-shadow 0.08s;
+}
+
+button:hover {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 0 8px rgba(255, 102, 0, 0.6);
+    transform: none;
+}
+
+button:active {
+    background: var(--fg-bright);
+    color: var(--bg);
+    border-color: var(--fg-bright);
+}
+
+/* ── Textarea ── */
+.code-input {
+    flex: 1;
+    background: transparent;
+    color: var(--fg-bright);
+    border: none;
+    padding: 0.75rem;
+    font-family: var(--font-code);
+    font-size: 0.88rem;
+    line-height: 1.65;
+    resize: none;
+    outline: none;
+    caret-color: var(--fg-bright);
+}
+
+.code-input::placeholder {
+    color: var(--fg-muted);
+}
+
+.code-input::selection {
+    background: var(--fg);
+    color: var(--bg);
+}
+
+/* ── Timeline ── */
+.timeline-visualizer {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-hi);
+    padding: 0.6rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+}
+
+.timeline-visualizer h3 {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    font-weight: normal;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.timeline-slider input[type="range"] {
+    width: 100%;
+    accent-color: var(--fg);
+    cursor: pointer;
+    background: transparent;
+}
+
+.passes-list {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fg-dim) transparent;
+}
+
+.passes-list::-webkit-scrollbar { height: 3px; }
+.passes-list::-webkit-scrollbar-thumb { background: var(--fg-muted); }
+
+.pass {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 0.05rem 0.45rem;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: color 0.08s, border-color 0.08s;
+}
+
+.pass:hover {
+    border-color: var(--fg-muted);
+    color: var(--fg);
+}
+
+.pass.active {
+    background: var(--bg-active);
+    border-color: var(--fg);
+    color: var(--fg-bright);
+    text-shadow: var(--glow);
+}
+
+/* ── Output panel ── */
+.output-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-hi);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ── Tabs ── */
+.tab-header {
+    display: flex;
+    background: var(--fg-dim);
+    border-bottom: 1px solid var(--border-hi);
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.tab-header button.tab {
+    background: transparent;
+    color: var(--fg-muted);
+    border: none;
+    border-right: 1px solid var(--border-hi);
+    border-radius: 0;
+    padding: 0.25rem 0.9rem;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.08s, background 0.08s;
+}
+
+.tab-header button.tab:hover {
+    color: var(--fg);
+    background: rgba(232, 160, 0, 0.05);
+    transform: none;
+    box-shadow: none;
+}
+
+.tab-header button.tab.active {
+    background: var(--bg-panel);
+    color: var(--fg-bright);
+    border-bottom: 2px solid var(--fg);
+    text-shadow: var(--glow);
+}
+
+/* ── Tab content ── */
+.tab-content {
+    flex: 1;
+    padding: 0.75rem;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fg-dim) transparent;
+}
+
+.tab-content::-webkit-scrollbar { width: 5px; }
+.tab-content::-webkit-scrollbar-thumb { background: var(--fg-muted); }
+
+/* ── Code output ── */
+.code-output {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 0.83rem;
+    line-height: 1.65;
+    color: var(--code-green);
+    text-shadow: var(--glow-green);
+}
+
+/* ── IR diff panes ── */
+.ir-diff-pane {
+    border: 1px solid var(--border-hi) !important;
+    border-radius: 0 !important;
+    background: rgba(0,0,0,0.3) !important;
+}
+
+.ir-diff-pane h4 {
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* ── CFG ── */
+.cfg-function {
+    border: 1px solid var(--border-hi) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+}
+
+.cfg-function h3 {
+    font-family: var(--font-ui);
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+}
+
+.cfg-svg {
+    border-radius: 0 !important;
+}
+
+
+.assembly-output {
+    color: var(--code-asm) !important;
+    text-shadow: 0 0 5px rgba(255, 140, 66, 0.3);
+}
+
+/* ── Resize handle ── */
+.resize-handle {
+    flex: 0 0 4px;
+    background: var(--border-hi);
+    cursor: col-resize;
+    transition: background 0.1s;
+    position: relative;
+    user-select: none;
+}
+
+.resize-handle::after {
+    content: '';
+    position: absolute;
+    inset: 0 -4px;
+}
+
+.resize-handle:hover,
+.resize-handle:active {
+    background: var(--fg);
+    box-shadow: 0 0 6px rgba(232, 160, 0, 0.5);
+}
+
+/* ── CFG SVG — constrain size ── */
+.cfg-svg svg {
+    max-width: 100%;
+    height: auto !important;
+    display: block;
+}
+
+.cfg-svg {
+    overflow: auto;
+    max-height: 500px;
+}
+
+/* ── Syntax highlighting ── */
+.hl-keyword  { color: #FFD060; }
+.hl-type     { color: #60D8FF; }
+.hl-value    { color: #44E860; }
+.hl-global   { color: #FF8040; }
+.hl-comment  { color: #4A4030; font-style: italic; }
+.hl-label    { color: #E8A000; font-weight: bold; }
+.hl-string   { color: #FFE080; }
+.hl-number   { color: #FF70B0; }
+.hl-attr     { color: #888888; }
+.hl-meta     { color: #404040; }
+
+/* ── Diff highlighting ── */
+.diff-add    { color: #6EFF90; border-left: 2px solid #44E860; padding-left: 4px; }
+.diff-remove { color: #FF8080; border-left: 2px solid #FF4444; padding-left: 4px; opacity: 0.8; }
+
+/* ── IR Diff layout ── */
+.ir-diff-view {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    height: 100%;
+}
+.ir-diff-pane {
+    flex: 1;
+    overflow: auto;
+    border: 1px solid var(--border-hi);
+    padding: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.diff-pane-title {
+    margin: 0 0 0.4rem 0;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    color: var(--fg-muted);
+    letter-spacing: 0.1em;
+    font-weight: normal;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.3rem;
+    flex-shrink: 0;
+}
+
+/* ── Error banner ── */
+.error-banner {
+    background: rgba(200, 30, 30, 0.12);
+    border-bottom: 1px solid #8B2020;
+    padding: 0.5rem 0.75rem;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.error-tag {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    color: #FF6060;
+    letter-spacing: 0.12em;
+}
+.error-text {
+    margin: 0;
+    font-family: var(--font-code);
+    font-size: 0.8rem;
+    color: #FF9090;
+    white-space: pre-wrap;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+/* ── Pass filter ── */
+.timeline-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+.pass-counter {
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    color: var(--fg-muted);
+    letter-spacing: 0.06em;
+    margin-left: auto;
+}
+.pass-filter {
+    width: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border-hi);
+    padding: 0.2rem 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    outline: none;
+    border-radius: 0;
+    box-sizing: border-box;
+}
+.pass-filter::placeholder { color: var(--fg-dim); }
+.pass-filter:focus { border-color: var(--fg); box-shadow: var(--glow); }
+
+/* ── Compile button disabled state ── */
+button:disabled {
+    color: var(--fg-muted);
+    border-color: var(--border);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+button:disabled:hover { background: transparent; box-shadow: none; }
+
+/* ── CFG ── */
+.cfg-view { display: flex; flex-direction: column; gap: 1rem; }
+.cfg-fn-title {
+    margin: 0 0 0.5rem 0;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    color: var(--fg-bright);
+    letter-spacing: 0.08em;
+    font-weight: normal;
+}

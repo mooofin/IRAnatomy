@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760">
+  <defs>
+    <style>
+      .title { font: 700 30px Arial, sans-serif; fill: #111827; }
+      .subtitle { font: 400 16px Arial, sans-serif; fill: #374151; }
+      .box-title { font: 700 18px Arial, sans-serif; fill: #111827; }
+      .box-text { font: 400 14px Arial, sans-serif; fill: #1f2937; }
+      .small { font: 400 13px Arial, sans-serif; fill: #4b5563; }
+      .lane { fill: #f9fafb; stroke: #e5e7eb; stroke-width: 2; rx: 12; }
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 12; }
+      .accent { fill: #ecfeff; stroke: #06b6d4; stroke-width: 2; rx: 12; }
+      .tool { fill: #fff7ed; stroke: #f97316; stroke-width: 2; rx: 12; }
+      .arrow { stroke: #475569; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <polygon points="0 0, 10 4, 0 8" fill="#475569" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="760" fill="#f3f4f6"/>
+  <text x="50" y="52" class="title">LLVM IR Explorer - Architecture Flow</text>
+  <text x="50" y="80" class="subtitle">From user input to LLVM artifacts (IR, pass snapshots, assembly, CFG)</text>
+
+  <rect x="50" y="110" width="360" height="590" class="lane"/>
+  <text x="70" y="145" class="box-title">Frontend (Leptos UI)</text>
+
+  <rect x="80" y="175" width="300" height="120" class="box"/>
+  <text x="95" y="205" class="box-title">CodeEditor</text>
+  <text x="95" y="230" class="box-text">User pastes C/C++ and selects O0..O3</text>
+  <text x="95" y="252" class="box-text">Click COMPILE dispatches server action</text>
+
+  <rect x="80" y="325" width="300" height="120" class="box"/>
+  <text x="95" y="355" class="box-title">Timeline + OutputTabs</text>
+  <text x="95" y="380" class="box-text">Shows per-pass IR and navigation</text>
+  <text x="95" y="402" class="box-text">Tabs: IR, Optimized IR, Diff, CFG, ASM</text>
+
+  <rect x="80" y="475" width="300" height="180" class="accent"/>
+  <text x="95" y="505" class="box-title">Rendered Results</text>
+  <text x="95" y="530" class="box-text">Highlighted LLVM IR (initial + pass state)</text>
+  <text x="95" y="552" class="box-text">Assembly view and CFG SVGs</text>
+  <text x="95" y="574" class="box-text">Errors surfaced in UI banner</text>
+
+  <rect x="520" y="110" width="360" height="590" class="lane"/>
+  <text x="540" y="145" class="box-title">Server (Axum + Leptos SSR)</text>
+
+  <rect x="550" y="175" width="300" height="120" class="box"/>
+  <text x="565" y="205" class="box-title">/api CompileAndOptimize</text>
+  <text x="565" y="230" class="box-text">Receives source + optimization level</text>
+  <text x="565" y="252" class="box-text">Validates size and creates temp workspace</text>
+
+  <rect x="550" y="325" width="300" height="120" class="box"/>
+  <text x="565" y="355" class="box-title">Pipeline Orchestration</text>
+  <text x="565" y="380" class="box-text">Runs clang++ / opt / dot commands</text>
+  <text x="565" y="402" class="box-text">Parses pass logs into structured response</text>
+
+  <rect x="550" y="475" width="300" height="180" class="accent"/>
+  <text x="565" y="505" class="box-title">CompileResult (JSON)</text>
+  <text x="565" y="530" class="box-text">initial_ir, passes[], assembly, cfgs[]</text>
+  <text x="565" y="552" class="box-text">Temp files removed before returning</text>
+
+  <rect x="990" y="110" width="360" height="590" class="lane"/>
+  <text x="1010" y="145" class="box-title">LLVM Toolchain</text>
+
+  <rect x="1020" y="175" width="300" height="100" class="tool"/>
+  <text x="1035" y="205" class="box-title">clang++ -S -emit-llvm -O0</text>
+  <text x="1035" y="228" class="box-text">Generates baseline output.ll</text>
+
+  <rect x="1020" y="300" width="300" height="120" class="tool"/>
+  <text x="1035" y="330" class="box-title">opt -passes=default&lt;O*&gt;</text>
+  <text x="1035" y="353" class="box-text">-print-after-all for pass snapshots</text>
+  <text x="1035" y="375" class="box-text">-disable-output for analysis-only run</text>
+
+  <rect x="1020" y="445" width="300" height="100" class="tool"/>
+  <text x="1035" y="475" class="box-title">clang++ -S -O*</text>
+  <text x="1035" y="498" class="box-text">Generates assembly output.s</text>
+
+  <rect x="1020" y="570" width="300" height="100" class="tool"/>
+  <text x="1035" y="600" class="box-title">opt dot-cfg + dot -Tsvg</text>
+  <text x="1035" y="623" class="box-text">Builds CFG DOT files and SVG output</text>
+
+  <path d="M380 235 L550 235" class="arrow"/>
+  <path d="M850 235 L1020 225" class="arrow"/>
+  <path d="M1170 670 L850 565" class="arrow"/>
+  <path d="M550 565 L380 565" class="arrow"/>
+  <path d="M230 295 L230 325" class="arrow"/>
+  <path d="M700 295 L700 325" class="arrow"/>
+
+  <text x="60" y="735" class="small">Relevant source files: src/components.rs, src/app.rs, src/server_functions.rs, src/main.rs</text>
+</svg>
