@@ -45,6 +45,30 @@ Useful starting point: orient at `-O0`, step through passes watching one functio
 
 ## Running it locally
 
+### With Nix (recommended)
+
+Use the flake-based development shell:
+
+```bash
+nix develop
+```
+
+Then run the app:
+
+```bash
+cargo leptos watch
+```
+
+Open `http://localhost:3000`.
+
+If `cargo-leptos` is not available from your current nixpkgs revision, install it once inside the shell:
+
+```bash
+cargo install cargo-leptos
+```
+
+### Without Nix (Debian/Ubuntu)
+
 You need Rust, `cargo-leptos`, clang, LLVM, and Graphviz. On Debian/Ubuntu:
 
 ```bash
@@ -79,4 +103,3 @@ docker run --rm -p 3000:3000 llvm-ir-explorer
 `clang++`, `opt`, and `dot` must be in PATH at runtime. If any are missing, compile requests will fail with an error shown in the UI.
 
 Input is capped at 100,000 characters.
-
