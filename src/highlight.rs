@@ -1,3 +1,16 @@
+pub fn to_data_uri(content: &str) -> String {
+    let mut out = String::from("data:text/plain;charset=utf-8,");
+    for b in content.bytes() {
+        match b {
+            b'%' => out.push_str("%25"),
+            b'#' => out.push_str("%23"),
+            0x20..=0x7E => out.push(b as char),
+            _ => { out.push('%'); out.push_str(&format!("{:02X}", b)); }
+        }
+    }
+    out
+}
+
 pub fn escape_html(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {

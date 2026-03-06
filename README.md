@@ -1,43 +1,58 @@
 # LLVM IR Explorer
 
-LLVM IR Explorer is a web app for understanding what the compiler is actually doing to your code. You paste C/C++, choose an optimization level, and inspect the full path from baseline LLVM IR to optimized IR, assembly, and control flow graphs.
+Paste C or C++, pick an optimization level, and walk through what the compiler actually did to your code, pass by pass. You get the initial IR at `-O0`, a snapshot after every optimization pass, assembly for the selected level, and CFG diagrams for each function. IR and assembly can be downloaded straight from the output tabs.
 
-If you are learning LLVM or debugging surprising performance behavior, the key idea is that most interesting changes happen in IR, not directly in assembly. IR is structured enough to read and reason about, while still being low-level enough to show real compiler decisions. This project is built to make those decisions visible pass by pass.
+Most tools give you a before and after. This one shows you everything in between.
 
-The app shows initial IR from `-O0`, optimized snapshots from `opt -print-after-all`, assembly for the selected level, and CFG diagrams rendered as SVG. A CFG is a graph of basic blocks and branch edges, and it helps when you want to understand how loops and conditionals were simplified over time.
+## What each tab shows
 
-## Documentation map
+**LLVM IR** shows the baseline IR compiled at `-O0` before any optimizations run. This is the raw translation of your source into SSA form and is useful as a starting point because it still resembles the source structure.
 
-- [Architecture diagram and flow](./docs/ARCHITECTURE.md)
-- [LLVM concepts guide](./docs/LLVM_CONCEPTS.md)
+**Optimized IR** shows the IR state after whichever pass is selected in the timeline. Use the slider or click a pass name to jump around.
 
-## Architecture at a glance
+**IR Diff** puts the initial IR and the current pass side by side. Changed lines are highlighted. The diff uses LCS so small edits do not flood the view. It is a visual aid for spotting where blocks or instructions were added, removed, or rewritten, not a semantic proof.
 
-![Architecture flow](./docs/architecture-flow.svg)
+**Assembly** shows the final output from `clang++` at the selected optimization level. IR tells you compiler intent, assembly tells you what will actually run on hardware.
 
-The UI (Leptos) sends source and optimization level to a server function. The backend runs `clang++`, `opt`, and `dot` in a temporary workspace, then returns structured results containing IR snapshots, assembly, and CFG SVGs. The UI renders those results with syntax highlighting, pass timeline navigation, and diff views.
+**CFG** renders a control flow graph per function as SVG. Use it when you want to see whether a branch disappeared after simplification, whether loop structure changed, or whether an error path is still reachable.
 
-## LLVM concepts (quick intro)
+## Architecture
 
-LLVM IR is an intermediate language between source code and machine code. It is where most compiler optimizations run. By comparing baseline IR (`-O0`) with pass-by-pass snapshots from `opt`, you can see exactly where values are folded, branches are simplified, and dead code is removed.
+![Architecture diagram](./docs/architecture-flow.svg)
 
-Optimization levels (`-O0` to `-O3`) are not single switches, but predefined pass pipelines. This app exposes those pipeline stages through a timeline. Instead of one opaque "optimized output", you can inspect each transition and understand which pass likely caused a transformation.
+The frontend is a Leptos app that compiles to both a server binary (SSR with Axum) and a WASM bundle (hydration). When you click COMPILE, it dispatches a server action to `/api/compile_and_optimize`. The server creates a UUID-named temp directory, writes your source to `input.cpp`, then runs:
 
-CFGs complement raw IR text. IR shows operations; CFG shows possible execution paths across basic blocks. When branch-heavy code changes shape, the CFG tab makes that easier to see quickly.
+1. `clang++ -S -emit-llvm -O0` to get baseline IR
+2. `opt -passes=default<O*> -print-after-all` to capture every pass snapshot
+3. `clang++ -S -O*` for assembly
+4. `opt -passes=dot-cfg` then `dot -Tsvg` for control flow graphs
 
-For the fuller explanation, examples, and reading tips, see [LLVM concepts guide](./docs/LLVM_CONCEPTS.md).
+Everything is bundled into a single response and the temp directory is deleted before it returns.
 
-## Local development
+On the frontend, a `create_effect` unpacks the result into separate signals. A second effect maps `current_pass_index` to the right IR snapshot so the output updates as you move through the timeline.
 
-Install Rust, `cargo-leptos`, LLVM/Clang, and Graphviz. On Debian/Ubuntu:
+## LLVM background
+
+LLVM IR is the compiler's working language between source code and machine code. It is lower-level than C/C++ but still readable. You can usually tell where values are created, where branches happen, and what operations are pure arithmetic versus memory access.
+
+Most LLVM IR is in SSA form (Static Single Assignment), which means each named value is assigned once. When reading IR in the app, look for `%` local values, `@` globals and functions, and `phi` nodes at control flow merge points. `phi` is important for loops and branches because it selects a value based on which predecessor block was taken.
+
+Optimization levels are not single switches, they are predefined pass pipelines. This app runs `opt -passes=default<O*>` and exposes the pipeline stage by stage so you can see exactly where constants were folded, branches simplified, or dead code removed, rather than treating it as a black box.
+
+A basic block is a straight-line sequence of instructions with one entry and one exit. The CFG connects these blocks with edges for jumps and branches. Use the CFG tab when text IR feels too dense and you want to reason about possible execution paths instead of exact operations.
+
+Useful starting point: orient at `-O0`, step through passes watching one function, switch to CFG when branching is the question, then check assembly to confirm whether the optimization actually changes real machine instructions.
+
+## Running it locally
+
+You need Rust, `cargo-leptos`, clang, LLVM, and Graphviz. On Debian/Ubuntu:
 
 ```bash
-sudo apt-get update
 sudo apt-get install -y clang llvm graphviz
 cargo install cargo-leptos
 ```
 
-Run in dev mode from repo root:
+Start the dev server with hot reload:
 
 ```bash
 cargo leptos watch
@@ -45,21 +60,23 @@ cargo leptos watch
 
 Open `http://localhost:3000`.
 
-Build release assets:
+Build for release:
 
 ```bash
 cargo leptos build --release
+./target/release/llvm-ir-explorer
 ```
 
-If you prefer Docker:
+Or via Docker:
 
 ```bash
 docker build -t llvm-ir-explorer .
 docker run --rm -p 3000:3000 llvm-ir-explorer
 ```
 
-And open `http://localhost:3000`.
+## Notes
 
-## Runtime notes
+`clang++`, `opt`, and `dot` must be in PATH at runtime. If any are missing, compile requests will fail with an error shown in the UI.
 
-This app expects `clang++`, `opt`, and `dot` in server runtime PATH. Compile input is currently capped at 100,000 characters.
+Input is capped at 100,000 characters.
+

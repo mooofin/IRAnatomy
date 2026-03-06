@@ -518,3 +518,28 @@ button:disabled:hover { background: transparent; box-shadow: none; }
     letter-spacing: 0.08em;
     font-weight: normal;
 }
+
+.tab-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+}
+
+.download-btn {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    border: 1px solid var(--border);
+    padding: 0.05rem 0.5rem;
+    text-decoration: none;
+    transition: color 0.08s, border-color 0.08s;
+}
+
+.download-btn:hover {
+    color: var(--fg-bright);
+    border-color: var(--fg-muted);
+}

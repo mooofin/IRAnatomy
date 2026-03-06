@@ -1,89 +1,103 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760">
   <defs>
     <style>
-      .title { font: 700 30px Arial, sans-serif; fill: #111827; }
-      .subtitle { font: 400 16px Arial, sans-serif; fill: #374151; }
-      .box-title { font: 700 18px Arial, sans-serif; fill: #111827; }
-      .box-text { font: 400 14px Arial, sans-serif; fill: #1f2937; }
-      .small { font: 400 13px Arial, sans-serif; fill: #4b5563; }
-      .lane { fill: #f9fafb; stroke: #e5e7eb; stroke-width: 2; rx: 12; }
-      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 12; }
-      .accent { fill: #ecfeff; stroke: #06b6d4; stroke-width: 2; rx: 12; }
-      .tool { fill: #fff7ed; stroke: #f97316; stroke-width: 2; rx: 12; }
-      .arrow { stroke: #475569; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead); }
+      .title    { font: 700 28px 'Courier New', monospace; fill: #FFD060; }
+      .subtitle { font: 400 14px 'Courier New', monospace; fill: #7A5200; }
+      .box-title { font: 700 15px 'Courier New', monospace; fill: #E8A000; }
+      .box-text  { font: 400 12px 'Courier New', monospace; fill: #B07800; }
+      .small     { font: 400 11px 'Courier New', monospace; fill: #3D2900; }
+      .lane-bg   { fill: #0E0E0B; stroke: #2A1C00; stroke-width: 1.5; }
+      .box       { fill: #111108; stroke: #2A1C00; stroke-width: 1; }
+      .accent    { fill: #1C1500; stroke: #B07800; stroke-width: 1; }
+      .tool      { fill: #130D00; stroke: #FF6600; stroke-width: 1; }
+      .arrow     { stroke: #7A5200; stroke-width: 1.5; fill: none; marker-end: url(#ah); }
     </style>
-    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
-      <polygon points="0 0, 10 4, 0 8" fill="#475569" />
+    <marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#7A5200" />
     </marker>
   </defs>
 
-  <rect x="0" y="0" width="1400" height="760" fill="#f3f4f6"/>
-  <text x="50" y="52" class="title">LLVM IR Explorer - Architecture Flow</text>
-  <text x="50" y="80" class="subtitle">From user input to LLVM artifacts (IR, pass snapshots, assembly, CFG)</text>
+  <!-- background -->
+  <rect x="0" y="0" width="1400" height="760" fill="#080806"/>
+  <!-- scanlines -->
+  <rect x="0" y="0" width="1400" height="760" fill="url(#scan)" opacity="0.04"/>
 
-  <rect x="50" y="110" width="360" height="590" class="lane"/>
-  <text x="70" y="145" class="box-title">Frontend (Leptos UI)</text>
+  <text x="50" y="50" class="title">LLVM IR Explorer</text>
+  <text x="50" y="74" class="subtitle">source → IR → passes → asm → CFG</text>
 
-  <rect x="80" y="175" width="300" height="120" class="box"/>
-  <text x="95" y="205" class="box-title">CodeEditor</text>
-  <text x="95" y="230" class="box-text">User pastes C/C++ and selects O0..O3</text>
-  <text x="95" y="252" class="box-text">Click COMPILE dispatches server action</text>
+  <!-- lane: Frontend -->
+  <rect x="50" y="100" width="360" height="610" rx="2" class="lane-bg"/>
+  <text x="70" y="128" class="box-title">FRONTEND (Leptos)</text>
 
-  <rect x="80" y="325" width="300" height="120" class="box"/>
-  <text x="95" y="355" class="box-title">Timeline + OutputTabs</text>
-  <text x="95" y="380" class="box-text">Shows per-pass IR and navigation</text>
-  <text x="95" y="402" class="box-text">Tabs: IR, Optimized IR, Diff, CFG, ASM</text>
+  <rect x="72" y="145" width="316" height="110" rx="2" class="box"/>
+  <text x="88" y="168" class="box-title">CodeEditor</text>
+  <text x="88" y="188" class="box-text">paste C/C++, pick O0..O3</text>
+  <text x="88" y="206" class="box-text">COMPILE → dispatch server action</text>
 
-  <rect x="80" y="475" width="300" height="180" class="accent"/>
-  <text x="95" y="505" class="box-title">Rendered Results</text>
-  <text x="95" y="530" class="box-text">Highlighted LLVM IR (initial + pass state)</text>
-  <text x="95" y="552" class="box-text">Assembly view and CFG SVGs</text>
-  <text x="95" y="574" class="box-text">Errors surfaced in UI banner</text>
+  <rect x="72" y="285" width="316" height="110" rx="2" class="box"/>
+  <text x="88" y="308" class="box-title">Timeline</text>
+  <text x="88" y="328" class="box-text">slider + pass list</text>
+  <text x="88" y="346" class="box-text">current_pass_index → optimized IR</text>
 
-  <rect x="520" y="110" width="360" height="590" class="lane"/>
-  <text x="540" y="145" class="box-title">Server (Axum + Leptos SSR)</text>
+  <rect x="72" y="425" width="316" height="250" rx="2" class="accent"/>
+  <text x="88" y="450" class="box-title">OutputTabs</text>
+  <text x="88" y="472" class="box-text">LLVM IR   (initial, O0)</text>
+  <text x="88" y="491" class="box-text">Optimized IR  (per pass)</text>
+  <text x="88" y="510" class="box-text">IR Diff   (LCS, max 500 lines)</text>
+  <text x="88" y="529" class="box-text">Assembly</text>
+  <text x="88" y="548" class="box-text">CFG (SVG)</text>
+  <text x="88" y="567" class="box-text">↓ download .ll / .s</text>
 
-  <rect x="550" y="175" width="300" height="120" class="box"/>
-  <text x="565" y="205" class="box-title">/api CompileAndOptimize</text>
-  <text x="565" y="230" class="box-text">Receives source + optimization level</text>
-  <text x="565" y="252" class="box-text">Validates size and creates temp workspace</text>
+  <!-- lane: Server -->
+  <rect x="520" y="100" width="360" height="610" rx="2" class="lane-bg"/>
+  <text x="540" y="128" class="box-title">SERVER (Axum + SSR)</text>
 
-  <rect x="550" y="325" width="300" height="120" class="box"/>
-  <text x="565" y="355" class="box-title">Pipeline Orchestration</text>
-  <text x="565" y="380" class="box-text">Runs clang++ / opt / dot commands</text>
-  <text x="565" y="402" class="box-text">Parses pass logs into structured response</text>
+  <rect x="542" y="145" width="316" height="110" rx="2" class="box"/>
+  <text x="558" y="168" class="box-title">CompileAndOptimize</text>
+  <text x="558" y="188" class="box-text">POST /api/compile_and_optimize</text>
+  <text x="558" y="206" class="box-text">validate ≤100k chars, create UUID tmpdir</text>
 
-  <rect x="550" y="475" width="300" height="180" class="accent"/>
-  <text x="565" y="505" class="box-title">CompileResult (JSON)</text>
-  <text x="565" y="530" class="box-text">initial_ir, passes[], assembly, cfgs[]</text>
-  <text x="565" y="552" class="box-text">Temp files removed before returning</text>
+  <rect x="542" y="285" width="316" height="110" rx="2" class="box"/>
+  <text x="558" y="308" class="box-title">Pipeline</text>
+  <text x="558" y="328" class="box-text">shell out to clang++ / opt / dot</text>
+  <text x="558" y="346" class="box-text">parse -print-after-all → passes[]</text>
 
-  <rect x="990" y="110" width="360" height="590" class="lane"/>
-  <text x="1010" y="145" class="box-title">LLVM Toolchain</text>
+  <rect x="542" y="425" width="316" height="250" rx="2" class="accent"/>
+  <text x="558" y="450" class="box-title">CompileResult</text>
+  <text x="558" y="472" class="box-text">initial_ir    string</text>
+  <text x="558" y="491" class="box-text">passes[]      name + ir snapshot</text>
+  <text x="558" y="510" class="box-text">assembly      string</text>
+  <text x="558" y="529" class="box-text">cfgs[]        fn name + SVG</text>
+  <text x="558" y="548" class="box-text">→ rm -rf tmpdir</text>
 
-  <rect x="1020" y="175" width="300" height="100" class="tool"/>
-  <text x="1035" y="205" class="box-title">clang++ -S -emit-llvm -O0</text>
-  <text x="1035" y="228" class="box-text">Generates baseline output.ll</text>
+  <!-- lane: LLVM Tools -->
+  <rect x="990" y="100" width="360" height="610" rx="2" class="lane-bg"/>
+  <text x="1010" y="128" class="box-title">LLVM TOOLCHAIN</text>
 
-  <rect x="1020" y="300" width="300" height="120" class="tool"/>
-  <text x="1035" y="330" class="box-title">opt -passes=default&lt;O*&gt;</text>
-  <text x="1035" y="353" class="box-text">-print-after-all for pass snapshots</text>
-  <text x="1035" y="375" class="box-text">-disable-output for analysis-only run</text>
+  <rect x="1012" y="145" width="316" height="90" rx="2" class="tool"/>
+  <text x="1028" y="168" class="box-title">clang++ -S -emit-llvm -O0</text>
+  <text x="1028" y="188" class="box-text">→ output.ll  (baseline IR)</text>
 
-  <rect x="1020" y="445" width="300" height="100" class="tool"/>
-  <text x="1035" y="475" class="box-title">clang++ -S -O*</text>
-  <text x="1035" y="498" class="box-text">Generates assembly output.s</text>
+  <rect x="1012" y="260" width="316" height="110" rx="2" class="tool"/>
+  <text x="1028" y="283" class="box-title">opt -passes=default&lt;O*&gt;</text>
+  <text x="1028" y="303" class="box-text">-print-after-all  -disable-output</text>
+  <text x="1028" y="321" class="box-text">stderr → pass snapshots</text>
 
-  <rect x="1020" y="570" width="300" height="100" class="tool"/>
-  <text x="1035" y="600" class="box-title">opt dot-cfg + dot -Tsvg</text>
-  <text x="1035" y="623" class="box-text">Builds CFG DOT files and SVG output</text>
+  <rect x="1012" y="395" width="316" height="90" rx="2" class="tool"/>
+  <text x="1028" y="418" class="box-title">clang++ -S -O*</text>
+  <text x="1028" y="438" class="box-text">→ output.s  (assembly)</text>
 
-  <path d="M380 235 L550 235" class="arrow"/>
-  <path d="M850 235 L1020 225" class="arrow"/>
-  <path d="M1170 670 L850 565" class="arrow"/>
-  <path d="M550 565 L380 565" class="arrow"/>
-  <path d="M230 295 L230 325" class="arrow"/>
-  <path d="M700 295 L700 325" class="arrow"/>
+  <rect x="1012" y="510" width="316" height="90" rx="2" class="tool"/>
+  <text x="1028" y="533" class="box-title">opt -passes=dot-cfg  +  dot -Tsvg</text>
+  <text x="1028" y="553" class="box-text">→ .dot files → SVG per function</text>
 
-  <text x="60" y="735" class="small">Relevant source files: src/components.rs, src/app.rs, src/server_functions.rs, src/main.rs</text>
+  <!-- arrows -->
+  <path d="M388 200 L542 200" class="arrow"/>
+  <path d="M858 200 L1012 190" class="arrow"/>
+  <path d="M1170 670 L858 550" class="arrow"/>
+  <path d="M542 550 L388 550" class="arrow"/>
+  <path d="M230 255 L230 285" class="arrow"/>
+  <path d="M700 255 L700 285" class="arrow"/>
+
+  <text x="52" y="748" class="small">src/app.rs  src/components.rs  src/server_functions.rs  src/highlight.rs  src/main.rs</text>
 </svg>

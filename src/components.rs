@@ -94,10 +94,22 @@ pub fn OutputTabs(
 
             <div class="tab-content">
                 <Show when=move || active_tab.get() == "LLVM IR" fallback=|| ()>
+                    <div class="tab-toolbar">
+                        <a class="download-btn"
+                            href=move || crate::highlight::to_data_uri(&llvm_ir.get())
+                            download="output.ll"
+                        >"↓ .ll"</a>
+                    </div>
                     <pre class="code-output" inner_html=move || hl_ir.get()></pre>
                 </Show>
 
                 <Show when=move || active_tab.get() == "Optimized IR" fallback=|| ()>
+                    <div class="tab-toolbar">
+                        <a class="download-btn"
+                            href=move || crate::highlight::to_data_uri(&optimized_ir.get())
+                            download="optimized.ll"
+                        >"↓ .ll"</a>
+                    </div>
                     <pre class="code-output" inner_html=move || hl_opt.get()></pre>
                 </Show>
 
@@ -117,6 +129,12 @@ pub fn OutputTabs(
                 </Show>
 
                 <Show when=move || active_tab.get() == "Assembly" fallback=|| ()>
+                    <div class="tab-toolbar">
+                        <a class="download-btn"
+                            href=move || crate::highlight::to_data_uri(&assembly_content.get())
+                            download="output.s"
+                        >"↓ .s"</a>
+                    </div>
                     <pre class="code-output" inner_html=move || hl_asm.get()></pre>
                 </Show>
 
