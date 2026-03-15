@@ -1,6 +1,16 @@
 # LLVM IR Explorer
 
+![Hero Screenshot](./docs/screenshot1.png)
+
 Most compiler tools show you the code before and after. This one shows you everything in between. Paste some C or C++, pick an optimization level, and watch as the compiler transforms your code pass-by-pass.
+
+## Core Features
+
+````carousel
+![LLVM IR Viewer](./docs/screenshot2.png)
+<!-- slide -->
+![Optimization Pipeline](./docs/screenshot3.png)
+````
 
 - **The Baseline**: Start with `-O0` IR. It’s raw, it’s verbose, and it’s the closest the compiler gets to your actual source before it starts "fixing" things.
 - **Pass-by-Pass Timeline**: Use the slider to step through the optimization pipeline. You can see exactly which pass folded those constants or pruned that branch.
