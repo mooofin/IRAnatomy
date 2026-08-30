@@ -115,6 +115,42 @@ fn tool_path(name: &str) -> String {
     }
 }
 
+/// LLVM's dot-cfg pass uses IR function names as filenames. MSVC C++ symbols
+/// contain characters such as `?`, which cannot be used in Windows filenames.
+/// Rewrite only those defined symbols in a CFG-only IR copy and retain a map
+/// so the UI can still show the original function name.
+#[cfg(feature = "ssr")]
+fn prepare_cfg_ir(ir: &str) -> (String, std::collections::HashMap<String, String>) {
+    let mut rewritten = ir.to_string();
+    let mut names = std::collections::HashMap::new();
+
+    for line in ir.lines().filter(|line| line.trim_start().starts_with("define ")) {
+        let Some(symbol_start) = line.find("@\"") else {
+            continue;
+        };
+        let symbol = &line[symbol_start + 2..];
+        let Some(symbol_end) = symbol.find('"') else {
+            continue;
+        };
+        let original = &symbol[..symbol_end];
+        if !original
+            .chars()
+            .any(|c| c.is_control() || matches!(c, '<' | '>' | ':' | '"' | '/' | '\\' | '|' | '?' | '*'))
+        {
+            continue;
+        }
+
+        let safe = format!("cfg_fn_{}", names.len());
+        rewritten = rewritten.replace(
+            &format!("@\"{}\"", original),
+            &format!("@{}", safe),
+        );
+        names.insert(safe, original.to_string());
+    }
+
+    (rewritten, names)
+}
+
 #[server(CompileAndOptimize, "/api")]
 pub async fn compile_and_optimize(
     code: String,
@@ -261,11 +297,18 @@ pub async fn compile_and_optimize(
         });
     }
 
+    let (cfg_ir, cfg_function_names) = prepare_cfg_ir(&initial_ir);
+    let cfg_input = temp_dir.join("cfg-input.ll");
+    if let Err(e) = fs::write(&cfg_input, cfg_ir) {
+        let _ = fs::remove_dir_all(&temp_dir);
+        return Err(ServerFnError::ServerError(e.to_string()));
+    }
+
     let _cfg_cmd = match Command::new(tool_path("opt"))
         .args([
             "-passes=dot-cfg",
             "-disable-output",
-            output_ll.to_str().unwrap(),
+            cfg_input.to_str().unwrap(),
         ])
         .current_dir(&temp_dir)
         .output() {
@@ -279,7 +322,11 @@ pub async fn compile_and_optimize(
             let path = entry.path();
             if path.extension().and_then(|s| s.to_str()) == Some("dot") {
                 let file_name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
-                let function_name = file_name.trim_start_matches('.').trim_end_matches(".dot").to_string();
+                let generated_name = file_name.trim_start_matches('.').trim_end_matches(".dot");
+                let function_name = cfg_function_names
+                    .get(generated_name)
+                    .cloned()
+                    .unwrap_or_else(|| generated_name.to_string());
                 if let Ok(dot_out) = Command::new(tool_path("dot"))
                     .args(["-Tsvg", path.to_str().unwrap()])
                     .output()
@@ -356,5 +403,16 @@ mod tests {
         );
         assert!(validate_pipeline("foo;bar").is_err());
         assert!(validate_pipeline(&"a".repeat(MAX_PIPELINE_LEN + 1)).is_err());
+    }
+
+    #[cfg(feature = "ssr")]
+    #[test]
+    fn cfg_ir_sanitizes_msvc_function_names() {
+        let ir = "define dso_local noundef i32 @\"?square@@YAHH@Z\"(i32 %0) {\n  ret i32 %0\n}\n";
+        let (rewritten, names) = prepare_cfg_ir(ir);
+
+        assert!(rewritten.contains("@cfg_fn_0"));
+        assert!(!rewritten.contains("?square@@YAHH@Z"));
+        assert_eq!(names.get("cfg_fn_0").map(String::as_str), Some("?square@@YAHH@Z"));
     }
 }

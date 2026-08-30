@@ -7,7 +7,7 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-        <Stylesheet id="leptos" href="/pkg/llvm-ir-explorer.css"/>
+        <Stylesheet id="leptos" href="/pkg/llvm-ir-explorer.css?v=20260830-2"/>
 
         <Title text="LLVM IR Explorer"/>
 
