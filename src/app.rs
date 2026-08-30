@@ -28,6 +28,10 @@ use crate::components::*;
 fn HomePage() -> impl IntoView {
     let code = create_rw_signal(String::from("int foo(int x) {\n    return x + 0;\n}"));
     let opt_level = create_rw_signal(String::from("O2"));
+    let language = create_rw_signal(String::from("cpp"));
+    let extra_flags = create_rw_signal(String::new());
+    let custom_pipeline = create_rw_signal(String::new());
+    let diff_mode = create_rw_signal(String::from("baseline"));
     
     let active_tab = create_rw_signal(String::from("LLVM IR"));
     let (llvm_ir, set_llvm_ir) = create_signal(String::new());
@@ -95,6 +99,9 @@ fn HomePage() -> impl IntoView {
                     <CodeEditor 
                         code=code
                         opt_level=opt_level
+                        language=language
+                        extra_flags=extra_flags
+                        custom_pipeline=custom_pipeline
                         on_compile=compile_action
                         is_pending=compile_action.pending()
                     />
@@ -116,6 +123,9 @@ fn HomePage() -> impl IntoView {
                         optimized_ir=optimized_ir
                         assembly_content=assembly_content
                         cfgs=cfgs
+                        passes=passes
+                        current_pass_index=current_pass_index
+                        diff_mode=diff_mode
                         error=error_msg
                     />
                 </div>

@@ -4,6 +4,9 @@ use leptos::*;
 pub fn CodeEditor(
     code: RwSignal<String>,
     opt_level: RwSignal<String>,
+    language: RwSignal<String>,
+    extra_flags: RwSignal<String>,
+    custom_pipeline: RwSignal<String>,
     on_compile: Action<
         crate::server_functions::CompileAndOptimize,
         Result<crate::server_functions::CompileResult, ServerFnError>,
@@ -13,7 +16,7 @@ pub fn CodeEditor(
     view! {
         <div class="code-editor-panel">
             <div class="header">
-                <h2>"C/C++ Source"</h2>
+                <h2>"Source"</h2>
                 <select
                     on:change=move |ev| opt_level.set(event_target_value(&ev))
                     prop:value=opt_level
@@ -29,11 +32,43 @@ pub fn CodeEditor(
                         on_compile.dispatch(crate::server_functions::CompileAndOptimize {
                             code: code.get(),
                             opt_level: opt_level.get(),
+                            language: language.get(),
+                            extra_flags: extra_flags.get(),
+                            custom_pipeline: custom_pipeline.get(),
                         });
                     }
                 >
                     {move || if is_pending.get() { "COMPILING..." } else { "COMPILE" }}
                 </button>
+            </div>
+            <div class="editor-flags-row">
+                <select
+                    class="lang-select"
+                    title="Source language"
+                    on:change=move |ev| language.set(event_target_value(&ev))
+                    prop:value=language
+                >
+                    <option value="cpp">"C++"</option>
+                    <option value="c">"C"</option>
+                </select>
+                <input
+                    class="flag-input"
+                    type="text"
+                    placeholder="CLANG FLAGS: e.g. -std=c++20 -march=native -ffast-math"
+                    title="Extra clang flags applied to both IR and assembly generation"
+                    spellcheck="false"
+                    on:input=move |ev| extra_flags.set(event_target_value(&ev))
+                    prop:value=extra_flags
+                />
+                <input
+                    class="pipeline-input"
+                    type="text"
+                    placeholder="OPT PIPELINE: empty = default<Ox>"
+                    title="Custom opt pass pipeline, e.g. mem2reg,instcombine"
+                    spellcheck="false"
+                    on:input=move |ev| custom_pipeline.set(event_target_value(&ev))
+                    prop:value=custom_pipeline
+                />
             </div>
             <textarea
                 class="code-input"
@@ -52,6 +87,9 @@ pub fn OutputTabs(
     optimized_ir: ReadSignal<String>,
     assembly_content: ReadSignal<String>,
     cfgs: ReadSignal<Vec<crate::server_functions::Cfg>>,
+    passes: ReadSignal<Vec<crate::server_functions::OptimizationPass>>,
+    current_pass_index: RwSignal<usize>,
+    diff_mode: RwSignal<String>,
     error: ReadSignal<Option<String>>,
 ) -> impl IntoView {
     let tabs = vec!["LLVM IR", "Optimized IR", "IR Diff", "CFG", "Assembly"];
@@ -60,8 +98,41 @@ pub fn OutputTabs(
     let hl_opt = create_memo(move |_| crate::highlight::highlight_ir(&optimized_ir.get()));
     let hl_asm = create_memo(move |_| crate::highlight::highlight_asm(&assembly_content.get()));
     let diff_pair = create_memo(move |_| {
-        crate::highlight::diff_ir(&llvm_ir.get(), &optimized_ir.get())
+        let idx = current_pass_index.get();
+        let (old, new) = if diff_mode.get() == "previous" {
+            let current_passes = passes.get();
+            let new_ir = current_passes
+                .get(idx)
+                .map(|p| p.ir.clone())
+                .unwrap_or_default();
+            let old_ir = if idx == 0 {
+                llvm_ir.get()
+            } else {
+                current_passes
+                    .get(idx - 1)
+                    .map(|p| p.ir.clone())
+                    .unwrap_or_default()
+            };
+            (old_ir, new_ir)
+        } else {
+            (llvm_ir.get(), optimized_ir.get())
+        };
+        crate::highlight::diff_ir(&old, &new)
     });
+    let diff_old_title = move || {
+        if diff_mode.get() == "previous" && current_pass_index.get() > 0 {
+            "PREVIOUS PASS"
+        } else {
+            "INITIAL IR (O0)"
+        }
+    };
+    let diff_new_title = move || {
+        if diff_mode.get() == "previous" {
+            "CURRENT PASS"
+        } else {
+            "OPTIMIZED (CURRENT PASS)"
+        }
+    };
 
     create_effect(move |_| {
         if error.get().is_some() {
@@ -114,16 +185,44 @@ pub fn OutputTabs(
                 </Show>
 
                 <Show when=move || active_tab.get() == "IR Diff" fallback=|| ()>
-                    <div class="ir-diff-view">
-                        <div class="ir-diff-pane">
-                            <h4 class="diff-pane-title">"INITIAL IR (O0)"</h4>
-                            <pre class="code-output"
-                                inner_html=move || diff_pair.get().0></pre>
+                    <div class="ir-diff-tab">
+                        <div class="diff-mode-toggle">
+                            <button
+                                class=move || {
+                                    if diff_mode.get() == "baseline" {
+                                        "diff-toggle-btn active"
+                                    } else {
+                                        "diff-toggle-btn"
+                                    }
+                                }
+                                on:click=move |_| diff_mode.set("baseline".to_string())
+                            >
+                                "VS O0 BASELINE"
+                            </button>
+                            <button
+                                class=move || {
+                                    if diff_mode.get() == "previous" {
+                                        "diff-toggle-btn active"
+                                    } else {
+                                        "diff-toggle-btn"
+                                    }
+                                }
+                                on:click=move |_| diff_mode.set("previous".to_string())
+                            >
+                                "VS PREVIOUS PASS"
+                            </button>
                         </div>
-                        <div class="ir-diff-pane">
-                            <h4 class="diff-pane-title">"OPTIMIZED (CURRENT PASS)"</h4>
-                            <pre class="code-output"
-                                inner_html=move || diff_pair.get().1></pre>
+                        <div class="ir-diff-view">
+                            <div class="ir-diff-pane">
+                                <h4 class="diff-pane-title">{diff_old_title}</h4>
+                                <pre class="code-output"
+                                    inner_html=move || diff_pair.get().0></pre>
+                            </div>
+                            <div class="ir-diff-pane">
+                                <h4 class="diff-pane-title">{diff_new_title}</h4>
+                                <pre class="code-output"
+                                    inner_html=move || diff_pair.get().1></pre>
+                            </div>
                         </div>
                     </div>
                 </Show>

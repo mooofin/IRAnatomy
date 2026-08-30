@@ -421,11 +421,17 @@ button:active {
 .diff-add    { color: #6EFF90; border-left: 2px solid #44E860; padding-left: 4px; }
 .diff-remove { color: #FF8080; border-left: 2px solid #FF4444; padding-left: 4px; opacity: 0.8; }
 
+.ir-diff-tab {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
 .ir-diff-view {
     display: flex;
     gap: 0.5rem;
     width: 100%;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
 }
 .ir-diff-pane {
     flex: 1;
@@ -542,4 +548,85 @@ button:disabled:hover { background: transparent; box-shadow: none; }
 .download-btn:hover {
     color: var(--fg-bright);
     border-color: var(--fg-muted);
+}
+
+.editor-flags-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.75rem;
+    background: rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.editor-flags-row select {
+    font-size: 0.95rem;
+    flex: 0 0 auto;
+}
+
+.flag-input,
+.pipeline-input {
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border-hi);
+    padding: 0.15rem 0.4rem;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    outline: none;
+    border-radius: 0;
+    min-width: 0;
+}
+
+.flag-input { flex: 2 1 220px; }
+.pipeline-input { flex: 1 1 160px; }
+
+.flag-input::placeholder,
+.pipeline-input::placeholder { color: var(--fg-dim); }
+
+.flag-input:hover,
+.pipeline-input:hover { border-color: var(--fg-bright); }
+
+.flag-input:focus,
+.pipeline-input:focus { border-color: var(--fg); box-shadow: var(--glow); }
+
+.diff-mode-toggle {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: flex-start;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
+}
+
+.diff-toggle-btn {
+    background: transparent;
+    color: var(--fg-muted);
+    border: 1px solid var(--border);
+    padding: 0.05rem 0.6rem;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 0;
+    transition: color 0.08s, border-color 0.08s;
+}
+
+.diff-toggle-btn:hover {
+    color: var(--fg);
+    border-color: var(--fg-muted);
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+}
+
+.diff-toggle-btn.active {
+    background: var(--bg-active);
+    border-color: var(--fg);
+    color: var(--fg-bright);
+    text-shadow: var(--glow);
 }
